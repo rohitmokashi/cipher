@@ -19,11 +19,11 @@
 #include "hardware/pwm.h"
 
 /*
-M1      M3
+M1      M2
   |    |
 
   |    |
-M2      M4
+M3      M4
 */
 
 
