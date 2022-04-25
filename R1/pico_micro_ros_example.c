@@ -57,15 +57,15 @@ M3      M4
 
 /* CONFIGURATIONS */
 int rotor_pwm = 65000;
-int feeder_pwm = 15000;
-int angle_pwm = 20000;
+int feeder_pwm = 11500;
+int angle_pwm = 18500;
 
 // 0 to max 65025.
 int PWM_MIN = 10;
 int PWMRANGE = 50000;
 int min_speed = 0;
 int max_speed = 31.42;
-bool run_once = false;
+bool running = false;
 const uint LED_PIN = 25;
 
 uint32_t u1Pwm, u2Pwm, u3Pwm, u4Pwm;
@@ -142,19 +142,6 @@ float idle(){
 // forward = 1 , backward = -1, left = -2, right = -2, clocl = 3, anticlock = -3
 
 void backward(int pwm1, int pwm2, int pwm3, int pwm4){
-	pwm_write(PWM_LEFT_1, pwm1);
-	pwm_write(PWM_LEFT_2, 0);
-	pwm_write(PWM_LEFT_3, 0);
-	pwm_write(PWM_LEFT_4, pwm4);
-	pwm_write(PWM_RIGHT_1, 0);
-	pwm_write(PWM_RIGHT_2, pwm2);
-	pwm_write(PWM_RIGHT_3, pwm3);
-	pwm_write(PWM_RIGHT_4, 0);
-    gpio_put(LED_PIN, 1);
-
-}
-
-void forward(int pwm1, int pwm2, int pwm3, int pwm4){
 	pwm_write(PWM_LEFT_1, 0);
 	pwm_write(PWM_LEFT_2, pwm2);
 	pwm_write(PWM_LEFT_3, pwm3);
@@ -164,7 +151,18 @@ void forward(int pwm1, int pwm2, int pwm3, int pwm4){
 	pwm_write(PWM_RIGHT_3, 0);
 	pwm_write(PWM_RIGHT_4, pwm4);
     gpio_put(LED_PIN, 1);
+}
 
+void forward(int pwm1, int pwm2, int pwm3, int pwm4){
+    pwm_write(PWM_LEFT_1, pwm1);
+	pwm_write(PWM_LEFT_2, 0);
+	pwm_write(PWM_LEFT_3, 0);
+	pwm_write(PWM_LEFT_4, pwm4);
+	pwm_write(PWM_RIGHT_1, 0);
+	pwm_write(PWM_RIGHT_2, pwm2);
+	pwm_write(PWM_RIGHT_3, pwm3);
+	pwm_write(PWM_RIGHT_4, 0);
+    gpio_put(LED_PIN, 1);
 }
 
 void left(int pwm1, int pwm2, int pwm3, int pwm4){
@@ -215,8 +213,6 @@ void anticlock(int pwm1, int pwm2, int pwm3, int pwm4){
     gpio_put(LED_PIN, 1);
 
 }
-
-
 void velocityCb(const void * msgin){
     const geometry_msgs__msg__Twist * msg = (const geometry_msgs__msg__Twist *)msgin;
     
@@ -269,20 +265,20 @@ void velocityCb(const void * msgin){
 
 }
 
-void feeder(int i){
+// void feeder(int i){
 
-    do{
-        if(gpio_get(DOWN_SWITCH) == 0){
-            gpio_put(PWM_FEEDER_LEFT, 0);
-            gpio_put(PWM_FEEDER_RIGHT, 1);
-        }
-        else if(gpio_get(UP_SWITCH) == 0){
-            gpio_put(PWM_FEEDER_RIGHT, 0);
-            gpio_put(PWM_ANGLE_LEFT, 1);
-        }
-    }while(gpio_get(DOWN_SWITCH) == 0);
+//     do{
+//         if(gpio_get(DOWN_SWITCH) == 0){
+//             gpio_put(PWM_FEEDER_LEFT, 0);
+//             gpio_put(PWM_FEEDER_RIGHT, 1);
+//         }
+//         else if(gpio_get(UP_SWITCH) == 0){
+//             gpio_put(PWM_FEEDER_RIGHT, 0);
+//             gpio_put(PWM_ANGLE_LEFT, 1);
+//         }
+//     }while(gpio_get(DOWN_SWITCH) == 0);
 
-}
+// }
 void feeder_up(){
     
     if(gpio_get(UP_SWITCH)!=0){
@@ -293,7 +289,7 @@ void feeder_up(){
         gpio_put(LED_PIN, 0);
         gpio_put(PWM_FEEDER_RIGHT, 0);
         gpio_put(PWM_FEEDER_LEFT, 0);
-        sleep_ms(500);
+        sleep_ms(800);
     }
 
 }
@@ -307,13 +303,16 @@ void feeder_down(){
         gpio_put(LED_PIN, 0);
         gpio_put(PWM_FEEDER_LEFT, 0);
         gpio_put(PWM_FEEDER_RIGHT, 0);
-        sleep_ms(500);
+        sleep_ms(800);
     }
 }
 void rotors_on(){
-    gpio_put(IN_ROTOR, 1);
-    pwm_write(PWM_ROTOR, rotor_pwm);
-	gpio_put(LED_PIN, 1);
+    if(!running){
+        gpio_put(IN_ROTOR, 1);
+        pwm_write(PWM_ROTOR, rotor_pwm);
+        gpio_put(LED_PIN, 1);
+        running = true;
+    }  
 }
 void rotors_off(){
     pwm_write(PWM_ROTOR, 0);
@@ -480,14 +479,25 @@ void twistoCb(const void * msgin){
             break;
 
         default:
-            gpio_put(PWM_ANGLE_LEFT, 0);
-            gpio_put(PWM_ANGLE_RIGHT, 0);
-            pwm_write(PWM_ROTOR, 0);
-            gpio_put(PWM_FEEDER_LEFT, 0);
-            gpio_put(PWM_FEEDER_RIGHT, 0);
-            gpio_put(SERVO_BTN, 1);
-            gpio_put(LED_PIN, 0);
-            break;                          
+            if(running){
+                gpio_put(PWM_ANGLE_LEFT, 0);
+                gpio_put(PWM_ANGLE_RIGHT, 0);
+                //pwm_write(PWM_ROTOR, 0);
+                gpio_put(PWM_FEEDER_LEFT, 0);
+                gpio_put(PWM_FEEDER_RIGHT, 0);
+                //gpio_put(SERVO_BTN, 1);
+                gpio_put(LED_PIN, 0);
+                break;
+            }else{
+                gpio_put(PWM_ANGLE_LEFT, 0);
+                gpio_put(PWM_ANGLE_RIGHT, 0);
+                pwm_write(PWM_ROTOR, 0);
+                gpio_put(PWM_FEEDER_LEFT, 0);
+                gpio_put(PWM_FEEDER_RIGHT, 0);
+                //gpio_put(SERVO_BTN, 1);
+                gpio_put(LED_PIN, 0);
+                break;  
+            }                        
     }
 }
 
