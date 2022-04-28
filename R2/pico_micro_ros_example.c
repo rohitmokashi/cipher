@@ -50,6 +50,10 @@
 #define R2_PIN 1
 #define R3_PIN 2
 
+#define U1_PIN 3
+#define U2_PIN 26
+#define U3_PIN 27
+
 // #define H1_PIN x
 // #define H2_PIN x
 // #define H3_PIN x
@@ -63,7 +67,8 @@ int PWM_MIN = 10;
 int PWMRANGE = 65025;
 int min_speed = 0;
 int max_speed = 31.42;
-#define pwm_val 20000
+
+#define pwm_val 55000
 
 const uint LED_PIN = 25;
 
@@ -77,6 +82,8 @@ float d = 0.36;
 rcl_subscription_t subscriber_cmd_vel;
 rcl_subscription_t subscriber_int;
 
+rcl_publisher_t publisher_check;
+
 // rcl_publisher_t publisher_u1;
 // rcl_publisher_t publisher_u2;
 // rcl_publisher_t publisher_u3;
@@ -87,6 +94,7 @@ rcl_subscription_t subscriber_int;
 
 geometry_msgs__msg__Twist msg;
 std_msgs__msg__Int32 msg_int;
+std_msgs__msg__Int32 int_check;
 
 /* FUNCTIONS */
 
@@ -105,6 +113,10 @@ std_msgs__msg__Int32 msg_int;
 // {
 // 	rcl_publish(&publisher_u3, &msg_float_u3, NULL);
 // }
+void timer_callback_check(rcl_timer_t * timer_check, int64_t last_call_time)
+{
+	rcl_publish(&publisher_check, &int_check, NULL);
+}
 
 //USER_DEFINED FUNCTIONS
 float mapPwm(float x, float out_min, float out_max)  
@@ -151,9 +163,14 @@ void stepper(int s, int dir, int pwm){
             }
             else if(dir == 0){
                 //low s1
-                gpio_put(S_1, 0);
-                pwm_write(S_1_PWM, pwm);
-                gpio_put(LED_PIN, 1);
+                if(gpio_get(U1_PIN) !=0){
+                    gpio_put(S_1, 0);
+                    pwm_write(S_1_PWM, pwm);
+                    gpio_put(LED_PIN, 1);
+                }else {
+                    pwm_write(S_1_PWM, 0);
+                    gpio_put(LED_PIN, 0);
+                }   
             }
             else {
                 stop();
@@ -170,10 +187,11 @@ void stepper(int s, int dir, int pwm){
                 //low s2
                 gpio_put(S_2, 0);
                 pwm_write(S_2_PWM, pwm);
-                gpio_put(LED_PIN, 1);
+                gpio_put(LED_PIN, 1); 
             }
             else {
                 stop();
+                gpio_put(LED_PIN, 0);
             }
             break;
         case 3:
@@ -185,12 +203,15 @@ void stepper(int s, int dir, int pwm){
             }
             else if(dir == 0){
                 //low s3
-                gpio_put(S_3, 0);
-                pwm_write(S_3_PWM, pwm);
-                gpio_put(LED_PIN, 1);
+                
+                    gpio_put(S_3, 0);
+                    pwm_write(S_3_PWM, pwm);
+                    gpio_put(LED_PIN, 1);
+                
             }
             else {
                 stop();
+                gpio_put(LED_PIN, 0);
             }
             break;
         default:
@@ -214,8 +235,8 @@ void gripper(int g, int dir, int pwm){
                     gpio_put(G_1, 0);
                     gpio_put(LED_PIN, 1);
                 }else{
-                    gpio_put(G_2, 0);
-                    gpio_put(G_2_PWM, 0);
+                    gpio_put(G_1, 0);
+                    gpio_put(G_1_PWM, 0);
                     gpio_put(LED_PIN, 0);
                     sleep_ms(50);
                 }
@@ -278,7 +299,7 @@ void gripper(int g, int dir, int pwm){
                     gpio_put(G_3_PWM, 0);
                     gpio_put(LED_PIN, 0);
                     sleep_ms(50);
-                }    
+                }   
             }
             else {
                 gpio_put(G_1, 0);
@@ -392,12 +413,12 @@ void intCb(const void * msgin){
         break;
     case 20100:
         stepper(2,0,pwm_val);  
-        //gpio_put(LED_PIN, 1); 
+        gpio_put(LED_PIN, 1); 
         break;  
 
     case 31000:
         stepper(3,1,pwm_val);
-        gpio_put(LED_PIN, 1); 
+        //gpio_put(LED_PIN, 1); 
         break;
     case 30100:
         stepper(3,0,pwm_val);
@@ -448,7 +469,7 @@ void intCb(const void * msgin){
     case 31010:
         stepper(3,1,pwm_val);
         gripper(3,1,pwm_val);
-       gpio_put(LED_PIN, 1);    
+       //gpio_put(LED_PIN, 1);    
         break;
     case 31001:
         stepper(3,1,pwm_val);
@@ -550,18 +571,6 @@ int main() {
     gpio_init(G_3_PWM);
     gpio_set_dir(G_3_PWM, GPIO_OUT);
 
-	// gpio_init(L1_PIN);
-	// gpio_set_dir(L1_PIN, false);
-	// gpio_pull_up(L1_PIN);
-
-    // gpio_init(L2_PIN);
-	// gpio_set_dir(L2_PIN, false);
-	// gpio_pull_up(L2_PIN);
-
-    // gpio_init(L3_PIN);
-	// gpio_set_dir(L3_PIN, false);
-	// gpio_pull_up(L3_PIN);
-
     gpio_init(R1_PIN);
 	gpio_set_dir(R1_PIN, false);
 	gpio_pull_up(R1_PIN);
@@ -573,6 +582,18 @@ int main() {
     gpio_init(R3_PIN);
 	gpio_set_dir(R3_PIN, false);
 	gpio_pull_up(R3_PIN);
+
+    gpio_init(U1_PIN);
+	gpio_set_dir(U1_PIN, false);
+	gpio_pull_up(U1_PIN);
+
+    gpio_init(U2_PIN);
+	gpio_set_dir(U2_PIN, false);
+	gpio_pull_up(U2_PIN);
+
+    gpio_init(U3_PIN);
+	gpio_set_dir(U3_PIN, false);
+	gpio_pull_up(U3_PIN);    
 
     // gpio_init(H1_PIN);
 	// gpio_set_dir(H1_PIN, false);
@@ -594,6 +615,8 @@ int main() {
     // rcl_timer_t timerx;
     // rcl_timer_t timery;
     // rcl_timer_t timerz;
+
+    rcl_timer_t timer_check;
 
     rcl_allocator_t allocator;
     rclc_support_t support;
@@ -637,6 +660,13 @@ int main() {
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
         "int_state");
 
+    //create publisher u1
+    rclc_publisher_init_default(
+		&publisher_check,
+		&node,
+		ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+		"check_publisher");
+
     // //create publisher u1
     // rclc_publisher_init_default(
 	// 	&publisher_u1,
@@ -675,8 +705,14 @@ int main() {
 	// 	&timerz,
 	// 	&support,
 	// 	RCL_MS_TO_NS(10),
-	// 	timer_callback_u3);    
-   
+	// 	timer_callback_u3); 
+
+    rclc_timer_init_default(
+		&timer_check,
+		&support,
+		RCL_MS_TO_NS(20),
+		timer_callback_check); 
+
     // create executor
     rclc_executor_init(&executor, &support.context, 8, &allocator);
     // rclc_executor_add_timer(&executor, &timerx);
@@ -685,12 +721,15 @@ int main() {
     rclc_executor_add_subscription(&executor, &subscriber_cmd_vel, &msg, &velocityCb, ON_NEW_DATA);
     rclc_executor_add_subscription(&executor, &subscriber_int, &msg, &intCb, ON_NEW_DATA);    
 
-    //gpio_put(LED_PIN, 1);
 
+    //gpio_put(LED_PIN, 1);
     // msg_float_u1.data = 0;
     // msg_float_u2.data = 0;
     // msg_float_u3.data = 0;  
-
+    // if(){}
+    //     int_check.data = 1;
+    rclc_executor_add_timer(&executor, &timer_check);
+    
     while (true)
     {
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
