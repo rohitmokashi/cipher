@@ -42,15 +42,20 @@
 #define G_3 5
 #define G_3_PWM 4
 
-#define L1_PIN 0
-#define L2_PIN 1
-#define L3_PIN 2
+// #define L1_PIN 0
+// #define L2_PIN 1
+// #define L3_PIN 2
 
-#define R1_PIN x
-#define R2_PIN x
-#define R3_PIN x
+#define R1_PIN 0
+#define R2_PIN 1
+#define R3_PIN 2
+
+// #define H1_PIN x
+// #define H2_PIN x
+// #define H3_PIN x
 
 
+// 3 
 // 0 to 65025.
 
 /* CONFIGURATIONS */
@@ -198,14 +203,9 @@ void gripper(int g, int dir, int pwm){
         case 1:
             if(dir == 1){
                 // open g1
-                if(gpio_get(L1_PIN) !=0){
-                    gpio_put(G_1, 1);
-                    gpio_put(G_1_PWM, 0);
-                    gpio_put(LED_PIN, 1);
-                }else{
-                    gpio_put(G_1, 0);
-                    gpio_put(G_1_PWM, 0);
-                }          
+                gpio_put(G_1, 1);
+                gpio_put(G_1_PWM, 0);
+                gpio_put(LED_PIN, 1);      
             }
             else if(dir == 0){
                 //close g1
@@ -229,15 +229,9 @@ void gripper(int g, int dir, int pwm){
         case 2:
             if(dir == 1){
                 // open g2
-                if(gpio_get(L2_PIN) !=0){
-                    gpio_put(G_2, 1);
-                    gpio_put(G_2_PWM, 0);
-                    gpio_put(LED_PIN, 1);
-                }else{
-                    gpio_put(G_2, 0);
-                    gpio_put(G_2_PWM, 0);
-                    gpio_put(LED_PIN, 0);
-                }    
+                gpio_put(G_2, 1);
+                gpio_put(G_2_PWM, 0);
+                gpio_put(LED_PIN, 1);
             }
             else if(dir == 0){
                 //close g2
@@ -263,14 +257,9 @@ void gripper(int g, int dir, int pwm){
         case 3:
             if(dir == 1){
                 // open g3
-                if(gpio_get(L3_PIN) !=0){
-                    gpio_put(G_3, 1);
-                    gpio_put(G_3_PWM, 0);
-                    gpio_put(LED_PIN, 1);
-                }else {
-                    gpio_put(G_3, 0);
-                    gpio_put(G_3_PWM, 0);
-                }    
+                gpio_put(G_3, 1);
+                gpio_put(G_3_PWM, 0);
+                gpio_put(LED_PIN, 1);
             }
             else if(dir == 0){
                 //close g3
@@ -553,17 +542,17 @@ int main() {
     gpio_init(G_3_PWM);
     gpio_set_dir(G_3_PWM, GPIO_OUT);
 
-	gpio_init(L1_PIN);
-	gpio_set_dir(L1_PIN, false);
-	gpio_pull_up(L1_PIN);
+	// gpio_init(L1_PIN);
+	// gpio_set_dir(L1_PIN, false);
+	// gpio_pull_up(L1_PIN);
 
-    gpio_init(L2_PIN);
-	gpio_set_dir(L2_PIN, false);
-	gpio_pull_up(L2_PIN);
+    // gpio_init(L2_PIN);
+	// gpio_set_dir(L2_PIN, false);
+	// gpio_pull_up(L2_PIN);
 
-    gpio_init(L3_PIN);
-	gpio_set_dir(L3_PIN, false);
-	gpio_pull_up(L3_PIN);
+    // gpio_init(L3_PIN);
+	// gpio_set_dir(L3_PIN, false);
+	// gpio_pull_up(L3_PIN);
 
     gpio_init(R1_PIN);
 	gpio_set_dir(R1_PIN, false);
@@ -576,6 +565,18 @@ int main() {
     gpio_init(R3_PIN);
 	gpio_set_dir(R3_PIN, false);
 	gpio_pull_up(R3_PIN);
+
+    // gpio_init(H1_PIN);
+	// gpio_set_dir(H1_PIN, false);
+	// gpio_pull_up(H1_PIN);
+
+    // gpio_init(H2_PIN);
+	// gpio_set_dir(H2_PIN, false);
+	// gpio_pull_up(H2_PIN);
+
+    // gpio_init(H3_PIN);
+	// gpio_set_dir(H3_PIN, false);
+	// gpio_pull_up(H3_PIN);
 
     
 

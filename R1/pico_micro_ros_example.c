@@ -65,7 +65,7 @@ int PWM_MIN = 10;
 int PWMRANGE = 50000;
 int min_speed = 0;
 int max_speed = 31.42;
-bool running = false;
+bool running;
 const uint LED_PIN = 25;
 
 uint32_t u1Pwm, u2Pwm, u3Pwm, u4Pwm;
@@ -280,48 +280,62 @@ void velocityCb(const void * msgin){
 
 // }
 void feeder_up(){
-    
     if(gpio_get(UP_SWITCH)!=0){
         gpio_put(PWM_FEEDER_RIGHT, 1);
-	    gpio_put(LED_PIN, 1);
+        gpio_put(LED_PIN, 1);
     }
     else{
-        gpio_put(LED_PIN, 0);
         gpio_put(PWM_FEEDER_RIGHT, 0);
         gpio_put(PWM_FEEDER_LEFT, 0);
-        sleep_ms(800);
+        gpio_put(LED_PIN, 0);
+        sleep_ms(50);
     }
-
+    //sleep_ms(800);
 }
 void feeder_down(){    
     if(gpio_get(DOWN_SWITCH)!=0){
         gpio_put(PWM_FEEDER_RIGHT, 0);
         gpio_put(PWM_FEEDER_LEFT, 1);
-	    gpio_put(LED_PIN, 1);
+        gpio_put(LED_PIN, 1);
     }
     else{
-        gpio_put(LED_PIN, 0);
         gpio_put(PWM_FEEDER_LEFT, 0);
         gpio_put(PWM_FEEDER_RIGHT, 0);
-        sleep_ms(800);
+        gpio_put(LED_PIN, 0);          
+        sleep_ms(50);
     }
+    //sleep_ms(800);
 }
 void rotors_on(){
     if(!running){
-        gpio_put(IN_ROTOR, 1);
-        pwm_write(PWM_ROTOR, rotor_pwm);
+        for(int i=0; i<=rotor_pwm;i++){    
+            pwm_write(PWM_ROTOR, i);       
+        }    
         gpio_put(LED_PIN, 1);
         running = true;
+        sleep_ms(200);
+    }
+    else {
+        pwm_write(PWM_ROTOR, rotor_pwm);
+        gpio_put(LED_PIN, 1); 
     }  
 }
 void rotors_off(){
-    pwm_write(PWM_ROTOR, 0);
-	gpio_put(LED_PIN, 1);
+    for(int i=rotor_pwm; i>=0; i--){
+        pwm_write(PWM_ROTOR, i);
+    }
+    gpio_put(LED_PIN, 1);
+    running = false;
 }
 void angle_down(){
-    gpio_put(PWM_ANGLE_LEFT, 0);
-    gpio_put(PWM_ANGLE_RIGHT, 1);
-    gpio_put(LED_PIN, 1);
+    if(gpio_get(DOWN_SWITCH)!=0){
+        gpio_put(PWM_ANGLE_LEFT, 0);
+        gpio_put(PWM_ANGLE_RIGHT, 1);
+        gpio_put(LED_PIN, 1);
+    }else{
+        gpio_put(PWM_ANGLE_LEFT, 0);
+        gpio_put(PWM_ANGLE_RIGHT, 0);
+    }    
 }
 void angle_up(){
     gpio_put(PWM_ANGLE_RIGHT, 0);
@@ -332,6 +346,7 @@ void servo(){
     gpio_put(SERVO_BTN, 0);
 	gpio_put(LED_PIN, 1);
 }
+
 void twistoCb(const void * msgin){
     const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
     int r_num = msg->data;
@@ -485,7 +500,7 @@ void twistoCb(const void * msgin){
                 //pwm_write(PWM_ROTOR, 0);
                 gpio_put(PWM_FEEDER_LEFT, 0);
                 gpio_put(PWM_FEEDER_RIGHT, 0);
-                //gpio_put(SERVO_BTN, 1);
+                gpio_put(SERVO_BTN, 1);
                 gpio_put(LED_PIN, 0);
                 break;
             }else{
@@ -494,7 +509,7 @@ void twistoCb(const void * msgin){
                 pwm_write(PWM_ROTOR, 0);
                 gpio_put(PWM_FEEDER_LEFT, 0);
                 gpio_put(PWM_FEEDER_RIGHT, 0);
-                //gpio_put(SERVO_BTN, 1);
+                gpio_put(SERVO_BTN, 1);
                 gpio_put(LED_PIN, 0);
                 break;  
             }                        
@@ -625,6 +640,8 @@ int main() {
     // create node
     rclc_node_init_default(&node, "cmd_vel_node", "", &support);
 
+    running = false;
+
     // create subscriber
     rclc_subscription_init_default(
         &subscriber,
@@ -708,7 +725,7 @@ int main() {
     // msg_float_u4.data = 0;  
 
     while (true){
-        rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+        rclc_executor_spin_some(&executor, RCL_MS_TO_NS(50));
     }
     
     return 0;
