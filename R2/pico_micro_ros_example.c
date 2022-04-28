@@ -202,19 +202,22 @@ void gripper(int g, int dir, int pwm){
     switch(g){
         case 1:
             if(dir == 1){
-                // open g1
+                // close g1
                 gpio_put(G_1, 1);
                 gpio_put(G_1_PWM, 0);
                 gpio_put(LED_PIN, 1);      
             }
             else if(dir == 0){
-                //close g1
+                //open g1
                 if(gpio_get(R1_PIN) !=0){
                     gpio_put(G_1_PWM, 1);
                     gpio_put(G_1, 0);
+                    gpio_put(LED_PIN, 1);
                 }else{
                     gpio_put(G_2, 0);
                     gpio_put(G_2_PWM, 0);
+                    gpio_put(LED_PIN, 0);
+                    sleep_ms(50);
                 }
             }
             else {
@@ -224,17 +227,18 @@ void gripper(int g, int dir, int pwm){
                 gpio_put(G_2_PWM, 0);
                 gpio_put(G_3, 0);
                 gpio_put(G_3_PWM, 0);
+                gpio_put(LED_PIN, 0);
             }
             break;
         case 2:
             if(dir == 1){
-                // open g2
+                // close g2
                 gpio_put(G_2, 1);
                 gpio_put(G_2_PWM, 0);
                 gpio_put(LED_PIN, 1);
             }
             else if(dir == 0){
-                //close g2
+                //open g2
                 if(gpio_get(R2_PIN) !=0){
                     gpio_put(G_2_PWM, 1);
                     gpio_put(G_2, 0);
@@ -243,6 +247,7 @@ void gripper(int g, int dir, int pwm){
                     gpio_put(G_2, 0);
                     gpio_put(G_2_PWM, 0);
                     gpio_put(LED_PIN, 0);
+                    sleep_ms(50);
                 }    
             }
             else {
@@ -252,17 +257,18 @@ void gripper(int g, int dir, int pwm){
                 gpio_put(G_2_PWM, 0);
                 gpio_put(G_3, 0);
                 gpio_put(G_3_PWM, 0);
+                gpio_put(LED_PIN, 0);
             }
             break;
         case 3:
             if(dir == 1){
-                // open g3
+                // close g3
                 gpio_put(G_3, 1);
                 gpio_put(G_3_PWM, 0);
                 gpio_put(LED_PIN, 1);
             }
             else if(dir == 0){
-                //close g3
+                //open g3
                 if(gpio_get(R3_PIN) !=0){
                     gpio_put(G_3_PWM, 1);
                     gpio_put(G_3, 0);
@@ -271,6 +277,7 @@ void gripper(int g, int dir, int pwm){
                     gpio_put(G_3, 0);
                     gpio_put(G_3_PWM, 0);
                     gpio_put(LED_PIN, 0);
+                    sleep_ms(50);
                 }    
             }
             else {
@@ -280,6 +287,7 @@ void gripper(int g, int dir, int pwm){
                 gpio_put(G_2_PWM, 0);
                 gpio_put(G_3, 0);
                 gpio_put(G_3_PWM, 0);
+                gpio_put(LED_PIN, 0);
             }
             break;
         default:
