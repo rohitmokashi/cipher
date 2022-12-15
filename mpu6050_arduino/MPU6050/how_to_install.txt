@@ -1,0 +1,4 @@
+1. Download https://github.com/jrowberg/i2cdevlib/archive/master.zip zip file and extract.
+2. In arduino go to add .zip library there first add Arduino/I2Cdev and then Arduino/mpu6050 from extracted directory.
+
+Note: Add .zip library also adds directory libraries even if not justified by the name.
